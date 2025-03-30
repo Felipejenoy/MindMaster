@@ -2,6 +2,7 @@ package com.example.mindmaster
 
 
 
+import android.graphics.BitmapFactory.Options
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,19 +37,83 @@ class MainActivity : ComponentActivity() {
             MindMasterTheme {
                 // Creamos el NavController para gestionar la navegación
                 val navController = rememberNavController()
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    NavHost(navController = navController, startDestination = "home") {
-                        composable("home") { HomeScreen(navController) }
-                        composable("difficulty") { DifficultySelectionScreen() }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Navegacion()
                     }
                 }
             }
         }
     }
-}
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun PantallaOpciones(
+    onBackClick:()-> Unit
+) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Título
+            Text(
+                text = "Opciones",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            // Opciones de Música y Sonido
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Música", fontSize = 18.sp)
+                    var musicaActivada = true
+                    Switch(
+                        checked = musicaActivada,
+                        onCheckedChange = { musicaActivada = it }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Sonido", fontSize = 18.sp)
+                    var sonidoActivado = true
+                    Switch(
+                        checked = sonidoActivado,
+                        onCheckedChange = { sonidoActivado = it }
+                    )
+                }
+            }
+
+            // Botón de Atrás
+            Button(
+                onClick = onBackClick,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Atrás")
+            }
+        }
+    }
+
+@Composable
+fun PantallaInicio(
+    onInicioClick: ()-> Unit,
+    onOptionsClick: ()-> Unit
+) {
     // Pantalla principal: Icono en el centro y 3 botones en la parte inferior
     Column(
         modifier = Modifier
@@ -72,14 +138,14 @@ fun HomeScreen(navController: NavController) {
         ) {
             // Botón "JUGAR": al hacer click, navega a la pantalla de selección de dificultad
             Button(
-                onClick = { navController.navigate("difficulty") },
+                onClick = onInicioClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "JUGAR", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
             // Botón "OPCIONES" (acción pendiente)
             Button(
-                onClick = { /* Agrega la acción para Opciones */ },
+                onClick = onOptionsClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "OPCIONES", fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -96,7 +162,9 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun DifficultySelectionScreen() {
+fun PantallaDificultad(
+    onClickVolver: () -> Unit
+) {
     // Pantalla de selección de dificultad: título y botones para cada nivel
     Column(
         modifier = Modifier
@@ -138,6 +206,15 @@ fun DifficultySelectionScreen() {
             text = "DIFÍCIL",
             onClick = { /* Acciones para la dificultad difícil */ }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onClickVolver,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Volver", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -160,19 +237,33 @@ fun DifficultyButton(text: String, onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun HomeScreenPreview() {
-    MindMasterTheme {
-        // Para el preview, se puede crear un NavController de ejemplo o bien omitir la navegación
-        HomeScreen(navController = rememberNavController())
+fun Navegacion(){
+    val navHostController = rememberNavController()
+    NavHost(navController = navHostController,
+        startDestination = Pantallas.Inicio.name) {
+        composable(route = Pantallas.Inicio.name){
+            PantallaInicio (
+                onInicioClick = {navHostController.navigate(Pantallas.dificultad.name)},
+                onOptionsClick = {navHostController.navigate(Pantallas.Opciones.name)}
+            )
+        }
+        composable(route = Pantallas.dificultad.name){
+            PantallaDificultad(
+                onClickVolver = {navHostController.navigate(Pantallas.Inicio.name)}
+            )
+        }
+        composable(route = Pantallas.Inicio.name){
+            PantallaOpciones (
+                onBackClick = {navHostController.navigate(Pantallas.Inicio.name)}
+            )
+        }
+
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DifficultySelectionScreenPreview() {
-    MindMasterTheme {
-        DifficultySelectionScreen()
-    }
+enum class Pantallas(){
+    Inicio,
+    Opciones,
+    dificultad
 }
