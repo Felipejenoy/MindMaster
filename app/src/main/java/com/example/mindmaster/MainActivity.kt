@@ -1,7 +1,5 @@
 package com.example.mindmaster
 
-
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,17 +31,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MindMasterTheme {
-                // Creamos el NavController para gestionar la navegación
-                val navController = rememberNavController()
+                val controladorNavegacion = rememberNavController()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NavHost(navController = navController, startDestination = "home") {
-                        composable("home") { HomeScreen(navController) }
-                        composable("difficulty") { DifficultySelectionScreen(navController) }
-                        composable("credits") { CreditsScreen(navController) }
-
+                    NavHost(controladorNavegacion, startDestination = "inicio") {
+                        composable("inicio") { PantallaInicio(controladorNavegacion) }
+                        composable("dificultad") { PantallaSeleccionDificultad(controladorNavegacion) }
+                        composable("creditos") { PantallaCreditos(controladorNavegacion) }
                     }
                 }
             }
@@ -51,187 +47,112 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun HomeScreen(navController: NavController) {
-        // Pantalla principal: Icono en el centro y 3 botones en la parte inferior
+    fun PantallaInicio(controladorNavegacion: NavController) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceAround, // Ajusta la distribución
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Espacio superior
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Icono (recuerda tener "IconoMindMaster" en res/drawable)
             Image(
                 painter = painterResource(id = R.drawable.iconomindmaster),
                 contentDescription = "Icono MindMaster",
                 modifier = Modifier.size(300.dp)
             )
-
-            // Espacio intermedio para subir los botones
             Spacer(modifier = Modifier.height(32.dp))
-
-            // Botones inferiores
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Botón "JUGAR"
-                Button(
-                    onClick = { navController.navigate("difficulty") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Button(onClick = { controladorNavegacion.navigate("dificultad") }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "JUGAR", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-                // Botón "OPCIONES"
-                Button(
-                    onClick = { /* Agrega la acción para Opciones */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Button(onClick = { /* Acción para Opciones */ }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "OPCIONES", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-                // Botón "CRÉDITOS"
-                Button(
-                    onClick = { navController.navigate("credits") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Button(onClick = { controladorNavegacion.navigate("creditos") }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "CRÉDITOS", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 
-
     @Composable
-    fun DifficultySelectionScreen(navController: NavController) {
-        // Pantalla de selección de dificultad: título y botones para cada nivel
+    fun PantallaSeleccionDificultad(controladorNavegacion: NavController) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Título
             Text(
                 text = "SELECCIONE LA DIFICULTAD",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                ),
+                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Botón para "FÁCIL"
-            DifficultyButton(
-                text = "FÁCIL",
-                onClick = { /* Acciones para la dificultad fácil */ }
-            )
-
+            BotonDificultad("FÁCIL") { /* Acción fácil */ }
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón para "NORMAL"
-            DifficultyButton(
-                text = "NORMAL",
-                onClick = { /* Acciones para la dificultad normal */ }
-            )
-
+            BotonDificultad("NORMAL") { /* Acción normal */ }
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón para "DIFÍCIL"
-            DifficultyButton(
-                text = "DIFÍCIL",
-                onClick = { /* Acciones para la dificultad difícil */ }
-            )
-
+            BotonDificultad("DIFÍCIL") { /* Acción difícil */ }
             Spacer(modifier = Modifier.height(32.dp))
-
-            // Botón "Atrás"
-            Button(onClick = { navController.popBackStack() }) {
+            Button(onClick = { controladorNavegacion.popBackStack() }) {
                 Text(text = "Atrás")
             }
         }
     }
 
-
     @Composable
-    fun CreditsScreen(navController: NavController) {
+    fun PantallaCreditos(controladorNavegacion: NavController) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "MindMaster",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "Desarrollado por:\nJohan Felipe Ordoñez \nDiego Gomez",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 18.sp
-                ),
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(32.dp))
-
-            Button(onClick = { navController.popBackStack() }) {
+            Button(onClick = { controladorNavegacion.popBackStack() }) {
                 Text(text = "Volver")
             }
         }
     }
 
-
-
-
     @Composable
-    fun DifficultyButton(text: String, onClick: () -> Unit) {
-        // Botón estilizado para seleccionar la dificultad
+    fun BotonDificultad(texto: String, onClick: () -> Unit) {
         Button(
             onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .height(50.dp)
+            modifier = Modifier.fillMaxWidth(0.6f).height(50.dp)
         ) {
             Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                text = texto,
+                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             )
         }
     }
 
     @Preview(showBackground = true)
     @Composable
-    fun HomeScreenPreview() {
+    fun VistaPreviaPantallaInicio() {
         MindMasterTheme {
-            // Para el preview, se puede crear un NavController de ejemplo o bien omitir la navegación
-            HomeScreen(navController = rememberNavController())
+            PantallaInicio(rememberNavController())
         }
     }
 
-
-
     @Preview(showBackground = true)
     @Composable
-    fun DifficultySelectionScreenPreview() {
+    fun VistaPreviaPantallaSeleccionDificultad() {
         MindMasterTheme {
-            DifficultySelectionScreen(navController = rememberNavController())
+            PantallaSeleccionDificultad(rememberNavController())
         }
     }
 }
