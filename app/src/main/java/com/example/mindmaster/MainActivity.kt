@@ -57,48 +57,53 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.SpaceAround, // Ajusta la distribución
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Espacio superior
             Spacer(modifier = Modifier.height(16.dp))
+
             // Icono (recuerda tener "IconoMindMaster" en res/drawable)
             Image(
                 painter = painterResource(id = R.drawable.iconomindmaster),
                 contentDescription = "Icono MindMaster",
-                modifier = Modifier.size(150.dp)
+                modifier = Modifier.size(300.dp)
             )
+
+            // Espacio intermedio para subir los botones
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Botones inferiores
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Botón "JUGAR": al hacer click, navega a la pantalla de selección de dificultad
+                // Botón "JUGAR"
                 Button(
                     onClick = { navController.navigate("difficulty") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "JUGAR", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-                // Botón "OPCIONES" (acción pendiente)
+                // Botón "OPCIONES"
                 Button(
                     onClick = { /* Agrega la acción para Opciones */ },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "OPCIONES", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-                // Botón "CRÉDITOS" (acción pendiente)
+                // Botón "CRÉDITOS"
                 Button(
                     onClick = { navController.navigate("credits") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "CRÉDITOS", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
-
             }
         }
     }
+
 
     @Composable
     fun DifficultySelectionScreen(navController: NavController) {
@@ -188,6 +193,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
 
 
