@@ -19,6 +19,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mindmaster.ui.theme.MindMasterTheme
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +109,54 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
 }
 
 @Composable
+fun PantallaOpciones(onInicioClick: ()-> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Opciones",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+        )
+
+        var musicaActivada by remember { mutableStateOf(false) }
+        var sonidoActivado by remember { mutableStateOf(false) }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+            Text(text = "Música")
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = musicaActivada,
+                onCheckedChange = { musicaActivada = it }
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Sonido")
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = sonidoActivado,
+                onCheckedChange = { sonidoActivado = it }
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onInicioClick) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
 fun Navegacion() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Pantallas.Inicio.name) {
@@ -123,11 +176,17 @@ fun Navegacion() {
                 onVolverClick = { navController.popBackStack() }
             )
         }
+        composable(Pantallas.Opciones.name) {
+            PantallaOpciones (
+                onInicioClick = { navController.popBackStack() }
+            )
+        }
     }
 }
 
 enum class Pantallas {
     Inicio,
     Dificultad,
-    Creditos
+    Creditos,
+    Opciones
 }
