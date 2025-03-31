@@ -122,7 +122,7 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
 }
 
 @Composable
-fun PantallaOpciones(onInicioClick: ()-> Unit) {
+fun PantallaOpciones (onInicioClick: ()-> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
