@@ -41,6 +41,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+//trabajando en rama Diego
+
 @Composable
 fun PantallaInicio(
     onJugarClick: () -> Unit,
