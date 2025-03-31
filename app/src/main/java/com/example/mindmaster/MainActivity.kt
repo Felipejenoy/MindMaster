@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PantallaInicio(
     onJugarClick: () -> Unit,
+    onPuntuacionesClick: () -> Unit,
     onOpcionesClick: () -> Unit,
     onCreditosClick: () -> Unit
 ) {
@@ -60,6 +61,10 @@ fun PantallaInicio(
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onJugarClick) {
             Text(text = "JUGAR", fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onPuntuacionesClick) {
+            Text(text = "PUNTUACIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onOpcionesClick) {
@@ -127,7 +132,7 @@ fun PantallaOpciones(onInicioClick: ()-> Unit) {
     ) {
         Text(
             text = "Opciones",
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             modifier = Modifier
                 .padding(bottom = 16.dp)
         )
@@ -165,12 +170,81 @@ fun PantallaOpciones(onInicioClick: ()-> Unit) {
 }
 
 @Composable
+fun PantallaMejoresPuntuaciones(
+    onBackClik: ()-> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Título
+        Text(
+            text = "Mejores puntuaciones",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // Tabla de puntuaciones
+        val puntuaciones = listOf(
+            Triple(1, 2500, "02:35"),
+            Triple(2, 2400, "03:10"),
+            Triple(3, 2300, "01:45"),
+            Triple(4, 2200, "04:20"),
+            Triple(5, 2100, "02:50"),
+            Triple(6, 2000, "01:30"),
+            Triple(7, 1900, "03:40"),
+            Triple(8, 1800, "02:10"),
+            Triple(9, 1700, "01:50"),
+            Triple(10, 1600, "04:00")
+        )
+
+        TableHeader()
+
+        puntuaciones.forEach { (posicion, puntuacion, tiempo) ->
+            TableRow(posicion, puntuacion, tiempo)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onBackClik) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
+fun TableHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = "Posición", style = MaterialTheme.typography.titleSmall)
+        Text(text = "Puntuación", style = MaterialTheme.typography.titleSmall)
+        Text(text = "Tiempo", style = MaterialTheme.typography.titleSmall)
+    }
+}
+
+@Composable
+fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = posicion.toString())
+        Text(text = puntuacion.toString())
+        Text(text = tiempo)
+    }
+}
+
+@Composable
 fun Navegacion() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Pantallas.Inicio.name) {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
+                onPuntuacionesClick = {navController.navigate(Pantallas.Puntuaciones.name)},
                 onOpcionesClick = {navController.navigate(Pantallas.Opciones.name)},
                 onCreditosClick = { navController.navigate(Pantallas.Creditos.name) }
             )
@@ -190,6 +264,11 @@ fun Navegacion() {
                 onInicioClick = { navController.popBackStack() }
             )
         }
+        composable(Pantallas.Puntuaciones.name) {
+            PantallaMejoresPuntuaciones(
+                onBackClik = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -197,5 +276,6 @@ enum class Pantallas {
     Inicio,
     Dificultad,
     Creditos,
-    Opciones
+    Opciones,
+    Puntuaciones
 }
