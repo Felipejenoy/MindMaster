@@ -42,7 +42,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PantallaInicio(onJugarClick: () -> Unit, onCreditosClick: () -> Unit) {
+fun PantallaInicio(
+    onJugarClick: () -> Unit,
+    onOpcionesClick: () -> Unit,
+    onCreditosClick: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -56,6 +60,10 @@ fun PantallaInicio(onJugarClick: () -> Unit, onCreditosClick: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onJugarClick) {
             Text(text = "JUGAR", fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onOpcionesClick) {
+            Text(text = "OPCIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onCreditosClick) {
@@ -163,6 +171,7 @@ fun Navegacion() {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
+                onOpcionesClick = {navController.navigate(Pantallas.Opciones.name)},
                 onCreditosClick = { navController.navigate(Pantallas.Creditos.name) }
             )
         }
