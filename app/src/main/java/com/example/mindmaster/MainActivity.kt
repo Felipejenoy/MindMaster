@@ -27,6 +27,16 @@ import androidx.compose.runtime.setValue
 import android.content.Context
 import android.media.MediaPlayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,13 +100,15 @@ fun PantallaInicio(
 }
 
 @Composable
-fun PantallaDificultad(context: Context, onAtrasClick: () -> Unit) {
+fun PantallaDificultad (navController: NavController, context: Context, onAtrasClick: () -> Unit) {
+
     // Función para reproducir sonido
     fun reproducirSonido() {
         val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
         mediaPlayer.start()
         mediaPlayer.setOnCompletionListener { it.release() } // Liberar recursos al finalizar
     }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -104,20 +116,118 @@ fun PantallaDificultad(context: Context, onAtrasClick: () -> Unit) {
     ) {
         Text(text = "SELECCIONE LA DIFICULTAD", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* Acción fácil */ }) {
+
+        Button(onClick = { navController.navigate(Pantallas.Facil.name) }) {
             Text(text = "FÁCIL")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { /* Acción normal */ }) {
+
+        Button(onClick = { navController.navigate(Pantallas.Medio.name) }) {
             Text(text = "NORMAL")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { /* Acción difícil */ }) {
+
+        Button(onClick = { navController.navigate(Pantallas.Dificil.name) }) {
             Text(text = "DIFÍCIL")
         }
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = onAtrasClick) {
             Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
+fun SonidoDeFondo(context: Context) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    LaunchedEffect(Unit) {
+        mediaPlayer?.release() // Asegurar que se libera el recurso
+        mediaPlayer = MediaPlayer.create(context, R.raw.SonidoDeFondo)
+        mediaPlayer?.isLooping = true // Hacer que la música se repita
+        mediaPlayer?.start()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release() // Detener música cuando se salga de la pantalla
+            mediaPlayer = null
+        }
+    }
+}
+
+
+@Composable
+fun PantallaFacil(context: Context, onAtrasClick: () -> Unit) {
+    SonidoDeFondo(context) // Iniciar música de fondo
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(text = "Modo Fácil - 3x3", fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        TableroMemoria(filas = 3, columnas = 3) // Tablero 3x3
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onAtrasClick) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
+fun PantallaMedio(context: Context, onAtrasClick: () -> Unit) {
+    SonidoDeFondo(context) // Iniciar música de fondo
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(text = "Modo Medio - 4x4", fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        TableroMemoria(filas = 4, columnas = 4) // Tablero 4x4
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onAtrasClick) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
+fun PantallaDificil(context: Context, onAtrasClick: () -> Unit) {
+    SonidoDeFondo(context) // Iniciar música de fondo
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(text = "Modo Difícil - 5x5", fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+        TableroMemoria(filas = 5, columnas = 5) // Tablero 5x5
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onAtrasClick) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
+
+@Composable
+fun TableroMemoria(filas: Int, columnas: Int) {
+    Column {
+        repeat(filas) { fila ->
+            Row {
+                repeat(columnas) { columna ->
+                    Button(
+                        onClick = { /* Acción cuando se toca la casilla */ },
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(60.dp) // Tamaño de cada casilla
+                    ) {
+                        Text(text = "?")
+                    }
+                }
+            }
         }
     }
 }
@@ -271,10 +381,22 @@ fun Navegacion() {
         }
         composable(Pantallas.Dificultad.name) {
             PantallaDificultad(
+                navController = navController,
                 context = context, // Pasar el contexto aquí
                 onAtrasClick = { navController.popBackStack() }
             )
         }
+
+        composable(Pantallas.Facil.name) {
+            PantallaFacil(context = context, onAtrasClick = { navController.popBackStack() })
+        }
+        composable(Pantallas.Medio.name) {
+            PantallaMedio(context = context, onAtrasClick = { navController.popBackStack() })
+        }
+        composable(Pantallas.Dificil.name) {
+            PantallaDificil(context = context, onAtrasClick = { navController.popBackStack() })
+        }
+
         composable(Pantallas.Creditos.name) {
             PantallaCreditos(
                 onVolverClick = { navController.popBackStack() }
@@ -298,5 +420,8 @@ enum class Pantallas {
     Dificultad,
     Creditos,
     Opciones,
-    Puntuaciones
+    Puntuaciones,
+    Facil,
+    Medio,
+    Dificil
 }
