@@ -24,6 +24,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.content.Context
+import android.media.MediaPlayer
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,11 +48,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun PantallaInicio(
+    context: Context, // Se necesita para acceder a los recursos
     onJugarClick: () -> Unit,
     onPuntuacionesClick: () -> Unit,
     onOpcionesClick: () -> Unit,
     onCreditosClick: () -> Unit
 ) {
+    // Función para reproducir sonido
+    fun reproducirSonido() {
+        val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
+        mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener { it.release() } // Liberar recursos al finalizar
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -80,7 +90,13 @@ fun PantallaInicio(
 }
 
 @Composable
-fun PantallaDificultad(onAtrasClick: () -> Unit) {
+fun PantallaDificultad(context: Context, onAtrasClick: () -> Unit) {
+    // Función para reproducir sonido
+    fun reproducirSonido() {
+        val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
+        mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener { it.release() } // Liberar recursos al finalizar
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -242,9 +258,11 @@ fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
+    val context = LocalContext.current // Obtener el contexto de la aplicación
     NavHost(navController = navController, startDestination = Pantallas.Inicio.name) {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
+                context = context, // Pasar el contexto aquí
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
                 onPuntuacionesClick = {navController.navigate(Pantallas.Puntuaciones.name)},
                 onOpcionesClick = {navController.navigate(Pantallas.Opciones.name)},
@@ -253,6 +271,7 @@ fun Navegacion() {
         }
         composable(Pantallas.Dificultad.name) {
             PantallaDificultad(
+                context = context, // Pasar el contexto aquí
                 onAtrasClick = { navController.popBackStack() }
             )
         }
