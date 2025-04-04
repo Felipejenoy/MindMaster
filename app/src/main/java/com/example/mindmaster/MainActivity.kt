@@ -31,8 +31,8 @@ import androidx.navigation.NavController
 
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -144,7 +144,7 @@ fun SonidoDeFondo(context: Context) {
 
     LaunchedEffect(Unit) {
         mediaPlayer?.release() // Asegurar que se libera el recurso
-        mediaPlayer = MediaPlayer.create(context, R.raw.SonidoDeFondo)
+        mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
         mediaPlayer?.isLooping = true // Hacer que la música se repita
         mediaPlayer?.start()
     }
