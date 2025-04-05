@@ -51,20 +51,26 @@ fun reproducirSonido(context: Context) {
 fun Musicamastermind(context: Context) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
-    LaunchedEffect(Unit) {
-        mediaPlayer?.release() // Asegurar que se libera el recurso
-        mediaPlayer = MediaPlayer.create(context, R.raw.musicmastermind)
-        mediaPlayer?.isLooping = true // Hacer que la música se repita
-        mediaPlayer?.start()
+    // Solo reproducir si la música está activada
+    LaunchedEffect(OpcionesUsuario.musicaActivada) {
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        if (OpcionesUsuario.musicaActivada) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.musicmastermind)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer?.release() // Detener música cuando se salga de la pantalla
+            mediaPlayer?.release()
             mediaPlayer = null
         }
     }
 }
+
 //trabajando en rama Diego
 @Composable
 fun PantallaInicio(
@@ -75,7 +81,9 @@ fun PantallaInicio(
     onCreditosClick: () -> Unit
 ) {
     // Iniciar música instrumental
-    Musicamastermind(context )
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -156,20 +164,26 @@ fun PantallaDificultad (navController: NavController, context: Context, onAtrasC
 fun SonidoDeFondo(context: Context) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
-    LaunchedEffect(Unit) {
-        mediaPlayer?.release() // Asegurar que se libera el recurso
-        mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
-        mediaPlayer?.isLooping = true // Hacer que la música se repita
-        mediaPlayer?.start()
+    // Solo reproducir si el sonido está activado
+    LaunchedEffect(OpcionesUsuario.sonidoActivado) {
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        if (OpcionesUsuario.sonidoActivado) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer?.release() // Detener música cuando se salga de la pantalla
+            mediaPlayer?.release()
             mediaPlayer = null
         }
     }
 }
+
 
 
 @Composable
@@ -185,6 +199,7 @@ fun PantallaFacil(context: Context, onAtrasClick: () -> Unit) {
         TableroMemoria(filas = 3, columnas = 3) // Tablero 3x3
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onAtrasClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -203,6 +218,7 @@ fun PantallaMedio(context: Context, onAtrasClick: () -> Unit) {
         TableroMemoria(filas = 4, columnas = 4) // Tablero 4x4
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onAtrasClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -221,6 +237,7 @@ fun PantallaDificil(context: Context, onAtrasClick: () -> Unit) {
         TableroMemoria(filas = 5, columnas = 5) // Tablero 5x5
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onAtrasClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -262,9 +279,12 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
         }
     }
 }
-
+object OpcionesUsuario {
+    var musicaActivada by mutableStateOf(true)
+    var sonidoActivado by mutableStateOf(true)
+}
 @Composable
-fun PantallaOpciones (onInicioClick: ()-> Unit) {
+fun PantallaOpciones(onInicioClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -275,13 +295,10 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
         Text(
             text = "Opciones",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier
-                .padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        var musicaActivada by remember { mutableStateOf(false) }
-        var sonidoActivado by remember { mutableStateOf(false) }
-
+        // Switch de música
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -289,27 +306,31 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
             Text(text = "Música")
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
-                checked = musicaActivada,
-                onCheckedChange = { musicaActivada = it }
+                checked = OpcionesUsuario.musicaActivada,
+                onCheckedChange = { OpcionesUsuario.musicaActivada = it }
             )
         }
 
+        // Switch de sonido
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Sonido")
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
-                checked = sonidoActivado,
-                onCheckedChange = { sonidoActivado = it }
+                checked = OpcionesUsuario.sonidoActivado,
+                onCheckedChange = { OpcionesUsuario.sonidoActivado = it }
             )
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = onInicioClick) {
             Text(text = "ATRÁS")
         }
     }
 }
+
 
 @Composable
 fun PantallaMejoresPuntuaciones(
