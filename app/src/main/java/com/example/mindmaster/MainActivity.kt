@@ -1,5 +1,7 @@
 package com.example.mindmaster
 
+import android.content.Context
+import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,34 +10,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mindmaster.ui.theme.MindMasterTheme
-import androidx.compose.material3.Switch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import android.content.Context
-import android.media.MediaPlayer
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavController
-
-import androidx.compose.runtime.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
 
 
 class MainActivity : ComponentActivity() {
@@ -54,8 +42,30 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//trabajando en rama Diego
+fun reproducirSonido(context: Context) {
+    val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
+    mediaPlayer.start()
+    mediaPlayer.setOnCompletionListener { it.release() }
+}
+@Composable
+fun Musicamastermind(context: Context) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
+    LaunchedEffect(Unit) {
+        mediaPlayer?.release() // Asegurar que se libera el recurso
+        mediaPlayer = MediaPlayer.create(context, R.raw.musicmastermind)
+        mediaPlayer?.isLooping = true // Hacer que la música se repita
+        mediaPlayer?.start()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release() // Detener música cuando se salga de la pantalla
+            mediaPlayer = null
+        }
+    }
+}
+//trabajando en rama Diego
 @Composable
 fun PantallaInicio(
     context: Context, // Se necesita para acceder a los recursos
@@ -64,12 +74,8 @@ fun PantallaInicio(
     onOpcionesClick: () -> Unit,
     onCreditosClick: () -> Unit
 ) {
-    // Función para reproducir sonido
-    fun reproducirSonido() {
-        val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
-        mediaPlayer.start()
-        mediaPlayer.setOnCompletionListener { it.release() } // Liberar recursos al finalizar
-    }
+    // Iniciar música instrumental
+    Musicamastermind(context )
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -81,19 +87,31 @@ fun PantallaInicio(
             modifier = Modifier.size(200.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onJugarClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onJugarClick()
+        }) {
             Text(text = "JUGAR", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onPuntuacionesClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onPuntuacionesClick()
+        }) {
             Text(text = "PUNTUACIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onOpcionesClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onOpcionesClick()
+        }) {
             Text(text = "OPCIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onCreditosClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onCreditosClick()
+        }) {
             Text(text = "CRÉDITOS", fontSize = 18.sp)
         }
     }
@@ -101,14 +119,6 @@ fun PantallaInicio(
 
 @Composable
 fun PantallaDificultad (navController: NavController, context: Context, onAtrasClick: () -> Unit) {
-
-    // Función para reproducir sonido
-    fun reproducirSonido() {
-        val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
-        mediaPlayer.start()
-        mediaPlayer.setOnCompletionListener { it.release() } // Liberar recursos al finalizar
-    }
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -118,21 +128,25 @@ fun PantallaDificultad (navController: NavController, context: Context, onAtrasC
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { navController.navigate(Pantallas.Facil.name) }) {
+            reproducirSonido(context)
             Text(text = "FÁCIL")
         }
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = { navController.navigate(Pantallas.Medio.name) }) {
+            reproducirSonido(context)
             Text(text = "NORMAL")
         }
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = { navController.navigate(Pantallas.Dificil.name) }) {
+            reproducirSonido(context)
             Text(text = "DIFÍCIL")
         }
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = onAtrasClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -241,7 +255,7 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
     ) {
         Text(text = "MindMaster", fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Desarrollado por:\nJohan Felipe Ordoñez \nDiego Gomez", fontSize = 18.sp)
+        Text(text = "Desarrollado por:\nJohan Felipe Ordoñez \nDiego Gomez\nValentina Sanchez", fontSize = 18.sp)
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onVolverClick) {
             Text(text = "VOLVER")
