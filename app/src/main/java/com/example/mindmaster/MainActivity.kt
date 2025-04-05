@@ -50,7 +50,6 @@ fun reproducirSonido(context: Context) {
 @Composable
 fun Musicamastermind(context: Context) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-
     // Solo reproducir si la música está activada
     LaunchedEffect(OpcionesUsuario.musicaActivada) {
         mediaPlayer?.release()
@@ -62,7 +61,6 @@ fun Musicamastermind(context: Context) {
             mediaPlayer?.start()
         }
     }
-
     DisposableEffect(Unit) {
         onDispose {
             mediaPlayer?.release()
@@ -127,6 +125,9 @@ fun PantallaInicio(
 
 @Composable
 fun PantallaDificultad (navController: NavController, context: Context, onAtrasClick: () -> Unit) {
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -163,7 +164,6 @@ fun PantallaDificultad (navController: NavController, context: Context, onAtrasC
 @Composable
 fun SonidoDeFondo(context: Context) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-
     // Solo reproducir si el sonido está activado
     LaunchedEffect(OpcionesUsuario.sonidoActivado) {
         mediaPlayer?.release()
@@ -175,7 +175,6 @@ fun SonidoDeFondo(context: Context) {
             mediaPlayer?.start()
         }
     }
-
     DisposableEffect(Unit) {
         onDispose {
             mediaPlayer?.release()
@@ -284,7 +283,10 @@ object OpcionesUsuario {
     var sonidoActivado by mutableStateOf(true)
 }
 @Composable
-fun PantallaOpciones(onInicioClick: () -> Unit) {
+fun PantallaOpciones(context: Context, onInicioClick: () -> Unit) {
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -333,9 +335,13 @@ fun PantallaOpciones(onInicioClick: () -> Unit) {
 
 
 @Composable
-fun PantallaMejoresPuntuaciones(
+fun PantallaMejoresPuntuaciones(context: Context,
     onBackClik: ()-> Unit
 ) {
+    // Iniciar música instrumental
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -438,12 +444,12 @@ fun Navegacion() {
             )
         }
         composable(Pantallas.Opciones.name) {
-            PantallaOpciones (
+            PantallaOpciones (context = context,
                 onInicioClick = { navController.popBackStack() }
             )
         }
         composable(Pantallas.Puntuaciones.name) {
-            PantallaMejoresPuntuaciones(
+            PantallaMejoresPuntuaciones(context = context,
                 onBackClik = { navController.popBackStack() }
             )
         }
