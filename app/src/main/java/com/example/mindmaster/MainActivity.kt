@@ -26,6 +26,8 @@ import com.example.mindmaster.ui.theme.MindMasterTheme
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -258,14 +260,14 @@ fun PantallaJuegoFacil(
 ) {
     // Estado inicial del juego
     val boardState = remember { mutableStateListOf(
-        mutableStateListOf(false, false, false),
+        mutableStateListOf(true, false, false),
         mutableStateListOf(false, false, false),
         mutableStateListOf(false, false, false)
     ) }
     val sequence = remember { mutableStateListOf<Pair<Int, Int>>() } // Secuencia mostrada
     val userSequence = remember { mutableStateListOf<Pair<Int, Int>>() } // Entrada del usuario
-    var level by remember { mutableStateOf(1) }
-    var lightDuration by remember { mutableStateOf(750L) } // Duración inicial (ms)
+    var level by remember { mutableIntStateOf(1) }
+    var lightDuration by remember { mutableLongStateOf(750L) } // Duración inicial (ms)
 
     // Encender luz
     fun encenderLuz(board: SnapshotStateList<SnapshotStateList<Boolean>>, x: Int, y: Int) {
@@ -323,7 +325,8 @@ fun PantallaJuegoFacil(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MemoryGameBoard(boardState = boardState, onCellClick = onCellClick)
+
+        MemoryGameBoard(boardState = boardState, onCellClick = onCellClick, sequence)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -344,7 +347,8 @@ fun PantallaJuegoFacil(
 @Composable
 fun MemoryGameBoard(
     boardState: List<List<Boolean>>,
-    onCellClick: (Int, Int) -> Unit
+    onCellClick: (Int, Int) -> Unit,
+    sequence: SnapshotStateList<Pair<Int, Int>> = remember { mutableStateListOf() } // Secuencia mostrada
 ) {
     Column {
         for (i in boardState.indices) {
@@ -359,6 +363,7 @@ fun MemoryGameBoard(
                     )
                 }
             }
+            Text(text = "Secuencia: $sequence")
         }
     }
 }
