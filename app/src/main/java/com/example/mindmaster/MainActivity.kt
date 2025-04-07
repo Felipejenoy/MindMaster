@@ -134,6 +134,7 @@ fun PantallaDificultad(
 }
 
 
+
 @Composable
 fun PantallaCreditos(onVolverClick: () -> Unit) {
     Column(
