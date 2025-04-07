@@ -1,13 +1,11 @@
 package com.example.mindmaster
-
-import android.annotation.SuppressLint
+import android.content.ContentValues
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -24,17 +22,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mindmaster.ui.theme.MindMasterTheme
 import androidx.compose.material3.Switch
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
-import kotlinx.coroutines.delay
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+
+import androidx.compose.runtime.mutableStateListOf
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import androidx.compose.ui.platform.LocalContext
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +61,25 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//trabajando en rama Diego
+
+class ScoreDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "Scores.db", null, 1) {
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dificultad TEXT,
+                score INTEGER
+            )
+            """.trimIndent()
+        )
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS scores")
+        onCreate(db)
+    }
+}
 
 @Composable
 fun PantallaInicio(
@@ -90,10 +117,15 @@ fun PantallaInicio(
     }
 }
 
+
+
+
 @Composable
 fun PantallaDificultad(
+    onAtrasClick: () -> Unit,
     onFacilClick: () -> Unit,
-    onAtrasClick: () -> Unit
+    onNormalClick: () -> Unit,
+    onDificilClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -103,15 +135,15 @@ fun PantallaDificultad(
         Text(text = "SELECCIONE LA DIFICULTAD", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onFacilClick) {
-            Text(text = "FÁCIL")
+            Text(text = "FÁCIL (3x3)")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { /* Acción normal */ }) {
-            Text(text = "NORMAL")
+        Button(onClick = onNormalClick) {
+            Text(text = "NORMAL (4x4)")
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { /* Acción difícil */ }) {
-            Text(text = "DIFÍCIL")
+        Button(onClick = onDificilClick) {
+            Text(text = "DIFÍCIL (5x5)")
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onAtrasClick) {
@@ -119,6 +151,7 @@ fun PantallaDificultad(
         }
     }
 }
+
 
 @Composable
 fun PantallaCreditos(onVolverClick: () -> Unit) {
@@ -187,8 +220,15 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
 
 @Composable
 fun PantallaMejoresPuntuaciones(
-    onBackClik: ()-> Unit
+    onBackClik: () -> Unit
 ) {
+    // Inserta puntuaciones iniciales si es necesario
+    val puntuacionesIniciales = listOf(
+        Triple(1, "Normal", 400),
+        Triple(2, "Dificil", 600),
+        Triple(3, "Facil", 300)
+    )
+    // Construimos la UI
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -196,33 +236,9 @@ fun PantallaMejoresPuntuaciones(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Título
-        Text(
-            text = "Mejores puntuaciones",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
-        // Tabla de puntuaciones
-        val puntuaciones = listOf(
-            Triple(1, 2500, "02:35"),
-            Triple(2, 2400, "03:10"),
-            Triple(3, 2300, "01:45"),
-            Triple(4, 2200, "04:20"),
-            Triple(5, 2100, "02:50"),
-            Triple(6, 2000, "01:30"),
-            Triple(7, 1900, "03:40"),
-            Triple(8, 1800, "02:10"),
-            Triple(9, 1700, "01:50"),
-            Triple(10, 1600, "04:00")
-        )
-
-        TableHeader()
-
-        puntuaciones.forEach { (posicion, puntuacion, tiempo) ->
-            TableRow(posicion, puntuacion, tiempo)
-        }
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = onBackClik) {
             Text(text = "ATRÁS")
         }
@@ -230,140 +246,139 @@ fun PantallaMejoresPuntuaciones(
 }
 
 @Composable
-fun TableHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = "Posición", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Puntuación", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Tiempo", style = MaterialTheme.typography.titleSmall)
-    }
+fun PantallaFacil(onVolverClick: () -> Unit) {
+    JuegoMemoria(
+        tamañoMatriz = 3,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Fácil (3x3)"
+    )
 }
 
 @Composable
-fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = posicion.toString())
-        Text(text = puntuacion.toString())
-        Text(text = tiempo)
-    }
+fun PantallaNormal(onVolverClick: () -> Unit) {
+    JuegoMemoria(
+        tamañoMatriz = 4,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Normal (4x4)"
+    )
 }
 
-@SuppressLint("RememberReturnType")
 @Composable
-fun PantallaJuegoFacil(
-    onBackClik: () -> Unit
+fun PantallaDificil(onVolverClick: () -> Unit) {
+    JuegoMemoria(
+        tamañoMatriz = 5,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Difícil (5x5)"
+    )
+}
+
+@Composable
+fun JuegoMemoria(
+    tamañoMatriz: Int,
+    onVolverClick: () -> Unit,
+    titulo: String
 ) {
-    // Estado inicial del juego
-    val boardState = remember { mutableStateListOf(
-        mutableStateListOf(true, false, false),
-        mutableStateListOf(false, false, false),
-        mutableStateListOf(false, false, false)
-    ) }
-    val sequence = remember { mutableStateListOf<Pair<Int, Int>>() } // Secuencia mostrada
-    val userSequence = remember { mutableStateListOf<Pair<Int, Int>>() } // Entrada del usuario
-    var level by remember { mutableIntStateOf(1) }
-    var lightDuration by remember { mutableLongStateOf(750L) } // Duración inicial (ms)
+    val totalTarjetas = tamañoMatriz*tamañoMatriz
+    val secuencia = remember { mutableStateListOf<Int>() }
+    val secuenciaUsuario = remember { mutableStateListOf<Int>() }
+    val mostrarResultado = remember { mutableStateOf<String?>(null) }
+    val iluminando = remember { mutableStateOf(true) }
+    val tarjetasIluminadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
+    val tarjetasSeleccionadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
+    val reiniciarJuego = remember { mutableStateOf(false) }
 
-    // Encender luz
-    fun encenderLuz(board: SnapshotStateList<SnapshotStateList<Boolean>>, x: Int, y: Int) {
-        board[x][y] = true
-    }
-    // Apagar luz
-    fun apagarLuz(board: SnapshotStateList<SnapshotStateList<Boolean>>, x: Int, y: Int) {
-        board[x][y] = false
-    }
+    LaunchedEffect(Unit, reiniciarJuego.value) {
+        secuencia.clear()
+        secuencia.addAll((0 until totalTarjetas).shuffled())
+        iluminando.value = true
+        tarjetasSeleccionadas.replaceAll { false }
+        tarjetasIluminadas.replaceAll { false }
 
-    // Mostrar secuencia
-    LaunchedEffect(sequence) {
-        sequence.forEach { (x, y) ->
-            encenderLuz(boardState, x, y)
-            delay(lightDuration)
-            apagarLuz(boardState, x, y)
+        for (i in secuencia.indices) {
+            val index = secuencia[i]
+            tarjetasIluminadas[index] = true
+            delay(500)
+            tarjetasIluminadas[index] = false
+            delay(250)
         }
+
+        iluminando.value = false
     }
 
-    // Generar nueva secuencia
-    fun generarNuevaSecuencia() {
-        sequence.clear()
-        repeat(level + 1) { // Nivel + 1 luces
-            sequence.add(Pair((0..2).random(), (0..2).random()))
-        }
-        userSequence.clear()
-    }
-
-    // Verificar secuencia del usuario
-    fun verificarSecuencia() {
-        if (userSequence == sequence) {
-            // Secuencia correcta: incrementar nivel y dificultad
-            level++
-            lightDuration = (lightDuration * 0.9).toLong() // Acelera la velocidad
-            generarNuevaSecuencia()
-        } else {
-            // Secuencia incorrecta: reinicia juego
-            level = 1
-            lightDuration = 750L
-            generarNuevaSecuencia()
-        }
-    }
-
-    // Captura de clics del usuario
-    val onCellClick: (Int, Int) -> Unit = { row, col ->
-        userSequence.add(Pair(row, col))
-        if (userSequence.size == sequence.size) {
-            verificarSecuencia()
-        }
-    }
-
-    // Interfaz del juego
     Column(
-        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize()
     ) {
-
-        MemoryGameBoard(boardState = boardState, onCellClick = onCellClick, sequence)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "Nivel: $level", style = MaterialTheme.typography.titleMedium)
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onBackClik) {
-            Text(text = "ATRÁS")
+        var score = 0
+        var dificultad = "NO aplica"
+        when(tamañoMatriz){
+            3-> dificultad = "Facil"
+            4-> dificultad = "normal"
+            5-> dificultad = "dificil"
         }
-    }
+        val context = LocalContext.current
 
-    // Generar la secuencia inicial
-    LaunchedEffect(Unit) {
-        generarNuevaSecuencia()
-    }
-}
+        Text(titulo, fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
 
-@Composable
-fun MemoryGameBoard(
-    boardState: List<List<Boolean>>,
-    onCellClick: (Int, Int) -> Unit,
-    sequence: SnapshotStateList<Pair<Int, Int>> = remember { mutableStateListOf() } // Secuencia mostrada
-) {
-    Column {
-        for (i in boardState.indices) {
-            Row {
-                for (j in boardState[i].indices) {
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .background(if (boardState[i][j]) Color.Yellow else Color.Gray)
-                            .clickable { onCellClick(i, j) }
-                            .border(1.dp, Color.Black)
-                    )
+        // MATRIZ DINÁMICA
+        Column {
+            for (i in 0 until tamañoMatriz) {
+                Row {
+                    for (j in 0 until tamañoMatriz) {
+                        val index = i * tamañoMatriz + j
+                        val iluminado = tarjetasIluminadas[index]
+                        val seleccionado = tarjetasSeleccionadas[index]
+
+                        Box(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .size(if (tamañoMatriz > 4) 60.dp else 80.dp) // Tamaño adaptable
+                                .background(
+                                    when {
+                                        iluminado -> Color.Yellow
+                                        seleccionado -> Color.DarkGray
+                                        else -> Color.Gray
+                                    }
+                                )
+                                .clickable(enabled = !iluminando.value && mostrarResultado.value == null) {
+                                    tarjetasSeleccionadas[index] = true
+                                    secuenciaUsuario.add(index)
+                                    val indexActual = secuenciaUsuario.size - 1
+                                    if (secuenciaUsuario[indexActual] != secuencia[indexActual]) {
+                                        mostrarResultado.value = "Fallaste, intenta de nuevo."
+                                    } else if (secuenciaUsuario.size == secuencia.size) {
+                                        mostrarResultado.value = "¡Correcto!"
+                                        when(tamañoMatriz){
+                                            3->score+=100
+                                            4->score+=200
+                                            5->score+=300
+                                        }
+                                    }
+                                }
+                        )
+                    }
                 }
             }
-            Text(text = "Secuencia: $sequence")
+        }
+
+        mostrarResultado.value?.let { resultado ->
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(resultado, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                mostrarResultado.value = null
+                secuenciaUsuario.clear()
+                reiniciarJuego.value = !reiniciarJuego.value
+            }) {
+                Text("Intentar de nuevo")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onVolverClick) {
+            Text("VOLVER")
         }
     }
 }
@@ -375,15 +390,17 @@ fun Navegacion() {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
-                onPuntuacionesClick = {navController.navigate(Pantallas.Puntuaciones.name)},
-                onOpcionesClick = {navController.navigate(Pantallas.Opciones.name)},
+                onPuntuacionesClick = { navController.navigate(Pantallas.Puntuaciones.name) },
+                onOpcionesClick = { navController.navigate(Pantallas.Opciones.name) },
                 onCreditosClick = { navController.navigate(Pantallas.Creditos.name) }
             )
         }
         composable(Pantallas.Dificultad.name) {
             PantallaDificultad(
-                onFacilClick = {navController.navigate(Pantallas.JuegoFacil.name)},
-                onAtrasClick = { navController.popBackStack() }
+                onAtrasClick = { navController.popBackStack() },
+                onFacilClick = { navController.navigate(Pantallas.Facil.name) },
+                onNormalClick = { navController.navigate(Pantallas.Normal.name) },
+                onDificilClick = { navController.navigate(Pantallas.Dificil.name) }
             )
         }
         composable(Pantallas.Creditos.name) {
@@ -401,10 +418,14 @@ fun Navegacion() {
                 onBackClik = { navController.popBackStack() }
             )
         }
-        composable(Pantallas.JuegoFacil.name) {
-            PantallaJuegoFacil(
-                onBackClik = { navController.popBackStack() }
-            )
+        composable(Pantallas.Facil.name) {
+            PantallaFacil { navController.popBackStack() }
+        }
+        composable(Pantallas.Normal.name) {
+            PantallaNormal { navController.popBackStack() }
+        }
+        composable(Pantallas.Dificil.name) {
+            PantallaDificil { navController.popBackStack() }
         }
     }
 }
@@ -415,5 +436,7 @@ enum class Pantallas {
     Creditos,
     Opciones,
     Puntuaciones,
-    JuegoFacil
+    Facil,
+    Normal,
+    Dificil
 }
