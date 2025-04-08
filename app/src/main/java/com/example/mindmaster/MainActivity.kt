@@ -447,6 +447,7 @@ fun PantallaOpciones(context: Context, onInicioClick: () -> Unit) {
 
         Button(onClick = onInicioClick) {
             reproducirSonido(context)
+
             Text(text = "ATRÁS")
         }
     }
