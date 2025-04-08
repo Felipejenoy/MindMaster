@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,48 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mindmaster.ui.theme.MindMasterTheme
+
+
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.mindmaster.ui.theme.MindMasterTheme
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+
+import androidx.compose.runtime.mutableStateListOf
+
+import androidx.compose.runtime.mutableStateListOf
 
 
 class MainActivity : ComponentActivity() {
@@ -68,15 +111,34 @@ fun Musicamastermind(context: Context) {
         }
     }
 }
+@Composable
+fun SonidoDeFondo(context: Context) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    // Solo reproducir si el sonido está activado
+    LaunchedEffect(OpcionesUsuario.sonidoActivado) {
+        mediaPlayer?.release()
+        mediaPlayer = null
 
-//trabajando en rama Diego
+        if (OpcionesUsuario.sonidoActivado) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+}
 @Composable
 fun PantallaInicio(
     context: Context, // Se necesita para acceder a los recursos
     onJugarClick: () -> Unit,
     onPuntuacionesClick: () -> Unit,
     onOpcionesClick: () -> Unit,
-    onCreditosClick: () -> Unit
+    onCreditosClick: () -> Unit,
 ) {
     // Iniciar música instrumental
     if (OpcionesUsuario.musicaActivada) {
@@ -124,7 +186,10 @@ fun PantallaInicio(
 }
 
 @Composable
-fun PantallaDificultad (navController: NavController, context: Context, onAtrasClick: () -> Unit) {
+fun PantallaDificultad (navController: NavController, context: Context, onAtrasClick: () -> Unit,
+                        onFacilClick: () -> Unit,
+                        onNormalClick: () -> Unit,
+                        onDificilClick: ()->Unit) {
     if (OpcionesUsuario.musicaActivada) {
         Musicamastermind(context )
     }
@@ -138,19 +203,19 @@ fun PantallaDificultad (navController: NavController, context: Context, onAtrasC
 
         Button(onClick = { navController.navigate(Pantallas.Facil.name) }) {
             reproducirSonido(context)
-            Text(text = "FÁCIL")
+            Text(text = "FÁCIL 3*3")
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { navController.navigate(Pantallas.Medio.name) }) {
+        Button(onClick = { navController.navigate(Pantallas.Normal.name) }) {
             reproducirSonido(context)
-            Text(text = "NORMAL")
+            Text(text = "NORMAL 4*4")
         }
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = { navController.navigate(Pantallas.Dificil.name) }) {
             reproducirSonido(context)
-            Text(text = "DIFÍCIL")
+            Text(text = "DIFÍCIL 5*5")
         }
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -162,103 +227,155 @@ fun PantallaDificultad (navController: NavController, context: Context, onAtrasC
 }
 
 @Composable
-fun SonidoDeFondo(context: Context) {
-    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
-    // Solo reproducir si el sonido está activado
-    LaunchedEffect(OpcionesUsuario.sonidoActivado) {
-        mediaPlayer?.release()
-        mediaPlayer = null
-
-        if (OpcionesUsuario.sonidoActivado) {
-            mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
-            mediaPlayer?.isLooping = true
-            mediaPlayer?.start()
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer?.release()
-            mediaPlayer = null
-        }
+fun TableHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = "Posición", style = MaterialTheme.typography.titleSmall)
+        Text(text = "Puntuación", style = MaterialTheme.typography.titleSmall)
+        Text(text = "Tiempo", style = MaterialTheme.typography.titleSmall)
     }
 }
 
-
+@Composable
+fun PantallaFacil(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context) // Iniciar música de fondo
+    JuegoMemoria(
+        context = context,
+        tamañoMatriz = 3,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Fácil (3x3)"
+    )
+}
+@Composable
+fun PantallaNormal(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context)
+    JuegoMemoria(
+        context = context,
+        tamañoMatriz = 4,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Normal (4x4)"
+    )
+}
+@Composable
+fun PantallaDificil(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context)
+    JuegoMemoria(
+        context = context,
+        tamañoMatriz = 5,
+        onVolverClick = onVolverClick,
+        titulo = "Modo Difícil (5x5)"
+        )
+}
 
 @Composable
-fun PantallaFacil(context: Context, onAtrasClick: () -> Unit) {
-    SonidoDeFondo(context) // Iniciar música de fondo
+fun JuegoMemoria(
+    context: Context,
+    tamañoMatriz: Int,
+    onVolverClick: () -> Unit,
+    titulo: String
+) {
+    val totalTarjetas = tamañoMatriz * tamañoMatriz
+    val secuencia = remember { mutableStateListOf<Int>() }
+    val secuenciaUsuario = remember { mutableStateListOf<Int>() }
+    val mostrarResultado = remember { mutableStateOf<String?>(null) }
+    val iluminando = remember { mutableStateOf(true) }
+    val tarjetasIluminadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
+    val tarjetasSeleccionadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
+    val reiniciarJuego = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit, reiniciarJuego.value) {
+        secuencia.clear()
+        secuencia.addAll((0 until totalTarjetas).shuffled())
+        iluminando.value = true
+        tarjetasSeleccionadas.replaceAll { false }
+        tarjetasIluminadas.replaceAll { false }
+
+        for (i in secuencia.indices) {
+            val index = secuencia[i]
+            tarjetasIluminadas[index] = true
+            delay(500)
+            tarjetasIluminadas[index] = false
+            delay(250)
+        }
+
+        iluminando.value = false
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        Text(text = "Modo Fácil - 3x3", fontSize = 20.sp)
+        Text(titulo, fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        TableroMemoria(filas = 3, columnas = 3) // Tablero 3x3
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAtrasClick) {
-            reproducirSonido(context)
-            Text(text = "ATRÁS")
-        }
-    }
-}
 
-@Composable
-fun PantallaMedio(context: Context, onAtrasClick: () -> Unit) {
-    SonidoDeFondo(context) // Iniciar música de fondo
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text(text = "Modo Medio - 4x4", fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        TableroMemoria(filas = 4, columnas = 4) // Tablero 4x4
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAtrasClick) {
-            reproducirSonido(context)
-            Text(text = "ATRÁS")
-        }
-    }
-}
+        // MATRIZ DINÁMICA
+        Column {
+            for (i in 0 until tamañoMatriz) {
+                Row {
+                    for (j in 0 until tamañoMatriz) {
+                        val index = i * tamañoMatriz + j
+                        val iluminado = tarjetasIluminadas[index]
+                        val seleccionado = tarjetasSeleccionadas[index]
 
-@Composable
-fun PantallaDificil(context: Context, onAtrasClick: () -> Unit) {
-    SonidoDeFondo(context) // Iniciar música de fondo
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text(text = "Modo Difícil - 5x5", fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        TableroMemoria(filas = 5, columnas = 5) // Tablero 5x5
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAtrasClick) {
-            reproducirSonido(context)
-            Text(text = "ATRÁS")
-        }
-    }
-}
-
-@Composable
-fun TableroMemoria(filas: Int, columnas: Int) {
-    Column {
-        repeat(filas) { fila ->
-            Row {
-                repeat(columnas) { columna ->
-                    Button(
-                        onClick = { /* Acción cuando se toca la casilla */ },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(60.dp) // Tamaño de cada casilla
-                    ) {
-                        Text(text = "?")
+                        Box(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .size(if (tamañoMatriz > 4) 60.dp else 80.dp) // Tamaño adaptable
+                                .background(
+                                    when {
+                                        iluminado -> Color.Yellow
+                                        seleccionado -> Color.DarkGray
+                                        else -> Color.Gray
+                                    }
+                                )
+                                .clickable(enabled = !iluminando.value && mostrarResultado.value == null) {
+                                    tarjetasSeleccionadas[index] = true
+                                    secuenciaUsuario.add(index)
+                                    val indexActual = secuenciaUsuario.size - 1
+                                    if (secuenciaUsuario[indexActual] != secuencia[indexActual]) {
+                                        mostrarResultado.value = "Fallaste, intenta de nuevo."
+                                    } else if (secuenciaUsuario.size == secuencia.size) {
+                                        mostrarResultado.value = "¡Correcto!"
+                                    }
+                                }
+                        )
                     }
                 }
             }
         }
+
+        mostrarResultado.value?.let { resultado ->
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(resultado, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                mostrarResultado.value = null
+                secuenciaUsuario.clear()
+                reiniciarJuego.value = !reiniciarJuego.value
+            }) {
+                Text("Intentar de nuevo")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onVolverClick) {
+            Text("VOLVER")
+        }
+    }
+}
+
+@Composable
+fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = posicion.toString())
+        Text(text = puntuacion.toString())
+        Text(text = tiempo)
     }
 }
 
@@ -383,75 +500,60 @@ fun PantallaMejoresPuntuaciones(context: Context,
 }
 
 @Composable
-fun TableHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = "Posición", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Puntuación", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Tiempo", style = MaterialTheme.typography.titleSmall)
-    }
-}
-
-@Composable
-fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = posicion.toString())
-        Text(text = puntuacion.toString())
-        Text(text = tiempo)
-    }
-}
-
-@Composable
 fun Navegacion() {
     val navController = rememberNavController()
-    val context = LocalContext.current // Obtener el contexto de la aplicación
+    val context = LocalContext.current
     NavHost(navController = navController, startDestination = Pantallas.Inicio.name) {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
-                context = context, // Pasar el contexto aquí
+                context = context,
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
-                onPuntuacionesClick = {navController.navigate(Pantallas.Puntuaciones.name)},
-                onOpcionesClick = {navController.navigate(Pantallas.Opciones.name)},
+                onPuntuacionesClick = { navController.navigate(Pantallas.Puntuaciones.name) },
+                onOpcionesClick = { navController.navigate(Pantallas.Opciones.name) },
                 onCreditosClick = { navController.navigate(Pantallas.Creditos.name) }
             )
         }
         composable(Pantallas.Dificultad.name) {
             PantallaDificultad(
+                onAtrasClick = { navController.popBackStack() },
+                onFacilClick = { navController.navigate(Pantallas.Facil.name) },
+                onNormalClick = { navController.navigate(Pantallas.Normal.name) },
+                onDificilClick = { navController.navigate(Pantallas.Dificil.name) },
                 navController = navController,
-                context = context, // Pasar el contexto aquí
-                onAtrasClick = { navController.popBackStack() }
+                context = context // Pasar el contexto aquí
             )
         }
-
-        composable(Pantallas.Facil.name) {
-            PantallaFacil(context = context, onAtrasClick = { navController.popBackStack() })
-        }
-        composable(Pantallas.Medio.name) {
-            PantallaMedio(context = context, onAtrasClick = { navController.popBackStack() })
-        }
-        composable(Pantallas.Dificil.name) {
-            PantallaDificil(context = context, onAtrasClick = { navController.popBackStack() })
-        }
-
         composable(Pantallas.Creditos.name) {
             PantallaCreditos(
                 onVolverClick = { navController.popBackStack() }
             )
         }
         composable(Pantallas.Opciones.name) {
-            PantallaOpciones (context = context,
+            PantallaOpciones(
+                context = context,
                 onInicioClick = { navController.popBackStack() }
             )
         }
         composable(Pantallas.Puntuaciones.name) {
-            PantallaMejoresPuntuaciones(context = context,
+            PantallaMejoresPuntuaciones(
+                context = context,
                 onBackClik = { navController.popBackStack() }
             )
+        }
+        composable(Pantallas.Puntuaciones.name) {
+            PantallaMejoresPuntuaciones(
+                context = context,
+                onBackClik = { navController.popBackStack() }
+            )
+        }
+        composable(Pantallas.Facil.name) {
+            PantallaFacil(context = context, onVolverClick = { navController.popBackStack() })
+        }
+        composable(Pantallas.Normal.name) {
+            PantallaNormal(context = context, onVolverClick = { navController.popBackStack() })
+        }
+        composable(Pantallas.Dificil.name) {
+            PantallaDificil(context = context, onVolverClick = { navController.popBackStack() })
         }
     }
 }
@@ -463,6 +565,6 @@ enum class Pantallas {
     Opciones,
     Puntuaciones,
     Facil,
-    Medio,
+    Normal,
     Dificil
 }
