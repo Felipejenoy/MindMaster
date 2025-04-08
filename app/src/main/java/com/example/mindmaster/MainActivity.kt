@@ -61,24 +61,57 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+class PuntuacionesDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "puntuaciones.db", null, 1) {
 
-class ScoreDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "Scores.db", null, 1) {
     override fun onCreate(db: SQLiteDatabase) {
+        // Crea la tabla "puntuaciones"
         db.execSQL(
             """
-            CREATE TABLE scores (
+            CREATE TABLE puntuaciones (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                dificultad TEXT,
-                score INTEGER
+                dificultad TEXT NOT NULL,
+                puntaje INTEGER NOT NULL
             )
             """.trimIndent()
         )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS scores")
+        // Si se actualiza la versión de la base de datos, puedes manejar cambios aquí
+        db.execSQL("DROP TABLE IF EXISTS puntuaciones")
         onCreate(db)
     }
+}
+
+fun insertPuntuacion(context: Context, dificultad: String, puntaje: Int) {
+    val dbHelper = PuntuacionesDatabaseHelper(context)
+    val db = dbHelper.writableDatabase
+
+    val values = ContentValues().apply {
+        put("dificultad", dificultad)
+        put("puntaje", puntaje)
+    }
+
+    db.insert("puntuaciones", null, values)
+    db.close()
+}
+
+fun getPuntuaciones(context: Context): List<Pair<String, Int>> {
+    val dbHelper = PuntuacionesDatabaseHelper(context)
+    val db = dbHelper.readableDatabase
+
+    val cursor = db.rawQuery("SELECT dificultad, puntaje FROM puntuaciones", null)
+    val puntuaciones = mutableListOf<Pair<String, Int>>()
+
+    while (cursor.moveToNext()) {
+        val dificultad = cursor.getString(cursor.getColumnIndexOrThrow("dificultad"))
+        val puntaje = cursor.getInt(cursor.getColumnIndexOrThrow("puntaje"))
+        puntuaciones.add(dificultad to puntaje)
+    }
+
+    cursor.close()
+    db.close()
+    return puntuaciones
 }
 
 @Composable
@@ -222,12 +255,19 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
 fun PantallaMejoresPuntuaciones(
     onBackClik: () -> Unit
 ) {
-    // Inserta puntuaciones iniciales si es necesario
-    val puntuacionesIniciales = listOf(
-        Triple(1, "Normal", 400),
-        Triple(2, "Dificil", 600),
-        Triple(3, "Facil", 300)
-    )
+    val context = LocalContext.current
+
+    // Lista reactiva para las puntuaciones
+    val puntuaciones = remember { mutableStateListOf<Pair<String, Int>>() }
+
+    // Inserta las puntuaciones iniciales y recupera datos
+    LaunchedEffect(Unit) {
+        // Recupera las puntuaciones
+        val nuevaLista = getPuntuaciones(context)
+        puntuaciones.clear() // Limpia y actualiza la lista reactiva
+        puntuaciones.addAll(nuevaLista)
+    }
+
     // Construimos la UI
     Column(
         modifier = Modifier
@@ -236,6 +276,16 @@ fun PantallaMejoresPuntuaciones(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            text = "Historial de partidas",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Muestra solo las últimas 10 puntuaciones en orden inverso (más recientes primero)
+        puntuaciones.takeLast(10).reversed().forEachIndexed { index, (dificultad, puntaje) ->
+            Text(text = "N°:${index + 1}    Dificultad: $dificultad    Puntaje: $puntaje")
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -297,7 +347,7 @@ fun JuegoMemoria(
         for (i in secuencia.indices) {
             val index = secuencia[i]
             tarjetasIluminadas[index] = true
-            delay(500)
+            delay(750)
             tarjetasIluminadas[index] = false
             delay(250)
         }
@@ -348,6 +398,7 @@ fun JuegoMemoria(
                                     val indexActual = secuenciaUsuario.size - 1
                                     if (secuenciaUsuario[indexActual] != secuencia[indexActual]) {
                                         mostrarResultado.value = "Fallaste, intenta de nuevo."
+                                        insertPuntuacion(context, dificultad, score)
                                     } else if (secuenciaUsuario.size == secuencia.size) {
                                         mostrarResultado.value = "¡Correcto!"
                                         when(tamañoMatriz){
@@ -357,12 +408,12 @@ fun JuegoMemoria(
                                         }
                                     }
                                 }
+
                         )
                     }
                 }
             }
         }
-
         mostrarResultado.value?.let { resultado ->
             Spacer(modifier = Modifier.height(24.dp))
             Text(resultado, fontSize = 18.sp)
