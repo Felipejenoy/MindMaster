@@ -1,4 +1,6 @@
-MindMaster - Juego de Memoria 🧠🎮
+**MindMaster - Juego de Memoria** 🧠🎮 
+
+
 MindMaster es un emocionante juego de memoria diseñado para poner a prueba tus habilidades cognitivas. Memoriza secuencias de colores y repítelas correctamente para avanzar a niveles más desafiantes. ¡Demuestra que tienes la mejor memoria y alcanza la puntuación más alta!
 
 Características principales ✨
