@@ -3,34 +3,35 @@
 
 MindMaster es un emocionante juego de memoria diseñado para poner a prueba tus habilidades cognitivas. Memoriza secuencias de colores y repítelas correctamente para avanzar a niveles más desafiantes. ¡Demuestra que tienes la mejor memoria y alcanza la puntuación más alta!
 
-Características principales ✨
-✅ Tres niveles de dificultad:
+**Características principales** ✨         
 
-Fácil (3x3): Ideal para principiantes
+✅ **Tres niveles de dificultad**:
 
-Normal (4x4): Un desafío equilibrado
+**Fácil (3x3):** Ideal para principiantes
 
-Difícil (5x5): Para mentes maestras
+**Normal (4x4):** Un desafío equilibrado
 
-✅ Sistema de puntuación progresivo:
+**Difícil (5x5):** Para mentes maestras
+
+✅ **Sistema de puntuación progresivo:**
 
 Gana más puntos en niveles difíciles
 
 Registra tus mejores puntajes
 
-✅ Interfaz intuitiva:
+✅ **Interfaz intuitiva:**
 
 Diseño limpio y fácil de usar
 
 Efectos visuales para una mejor experiencia
 
-✅ Historial de partidas:
+✅ **Historial de partidas:**
 
 Revisa tus puntuaciones anteriores
 
 Compara tu progreso
 
-Cómo jugar 🎮
+**Cómo jugar 🎮**
 Selecciona una dificultad (Fácil, Normal o Difícil).
 
 Observa la secuencia de colores que se iluminan.
@@ -43,22 +44,22 @@ Avanza de nivel al completar secuencias correctamente.
 
 
 
-Tecnologías utilizadas ⚙️
-Lenguaje: Kotlin
+**Tecnologías utilizadas ⚙️**
+**Lenguaje: **Kotlin
 
-Arquitectura: Jetpack Compose (Declarative UI)
+**Arquitectura:** Jetpack Compose (Declarative UI)
 
-Persistencia de datos: SQLite
+**Persistencia de datos:** SQLite
 
-Patrones: MVVM (Model-View-ViewModel)
+**Patrones**: MVVM (Model-View-ViewModel)
 
-Desarrolladores 👨‍💻
+**Desarrolladores 👨‍💻**
 Johan Felipe Ordoñez
 
 Diego Gomez
 
-Instalación 📥
-Clona el repositorio:
+**Instalación 📥**
+**Clona el repositorio:**
 
 bash
 Copy
@@ -67,8 +68,8 @@ Abre el proyecto en Android Studio.
 
 Ejecuta la app en un emulador o dispositivo Android.
 
-Contribuciones 🤝
-¡Las contribuciones son bienvenidas! Si deseas mejorar el juego, sigue estos pasos:
+**Contribuciones 🤝**
+**¡Las contribuciones son bienvenidas! Si deseas mejorar el juego, sigue estos pasos:**
 
 Haz un fork del repositorio.
 
