@@ -261,7 +261,7 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
         )
 
         Text(
-            text = "Johan Felipe Ordoñez\nDiego Gomez",
+            text = "Johan Felipe Ordoñez\nDiego Gomez\nValentina Sanchez",
             fontSize = 18.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 8.dp)
