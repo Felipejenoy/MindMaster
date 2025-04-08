@@ -380,7 +380,7 @@ fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
 }
 
 @Composable
-fun PantallaCreditos(onVolverClick: () -> Unit) {
+fun PantallaCreditos(context: Context,onVolverClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -391,6 +391,7 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
         Text(text = "Desarrollado por:\nJohan Felipe Ordoñez \nDiego Gomez\nValentina Sanchez", fontSize = 18.sp)
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = onVolverClick) {
+            reproducirSonido(context)
             Text(text = "VOLVER")
         }
     }
@@ -445,6 +446,7 @@ fun PantallaOpciones(context: Context, onInicioClick: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = onInicioClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -494,6 +496,7 @@ fun PantallaMejoresPuntuaciones(context: Context,
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onBackClik) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -525,6 +528,7 @@ fun Navegacion() {
         }
         composable(Pantallas.Creditos.name) {
             PantallaCreditos(
+                context = context,
                 onVolverClick = { navController.popBackStack() }
             )
         }
