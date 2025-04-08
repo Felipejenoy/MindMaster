@@ -58,6 +58,8 @@ Johan Felipe Ordoñez
 
 Diego Gomez
 
+Valentina Sanchez
+
 **Instalación 📥**
 **Clona el repositorio:**
 
