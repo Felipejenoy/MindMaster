@@ -3,7 +3,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import androidx.compose.runtime.toMutableStateList
+import android.media.MediaPlayer
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 import android.os.Bundle
@@ -34,9 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,10 +41,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.mutableStateListOf
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.LocalContext
 
 
@@ -67,6 +64,55 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+fun reproducirSonido(context: Context) {
+    val mediaPlayer = MediaPlayer.create(context, R.raw.pup)
+    mediaPlayer.start()
+    mediaPlayer.setOnCompletionListener { it.release() }
+}
+@Composable
+fun Musicamastermind(context: Context) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    // Solo reproducir si la música está activada
+    LaunchedEffect(OpcionesUsuario.musicaActivada) {
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        if (OpcionesUsuario.musicaActivada) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.musicamastermind)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
+    }
+    DisposableEffect(Unit){
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+}
+@Composable
+fun SonidoDeFondo(context: Context) {
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    // Solo reproducir si el sonido está activado
+    LaunchedEffect(OpcionesUsuario.sonidoActivado) {
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        if (OpcionesUsuario.sonidoActivado) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.sonidodefondo)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.start()
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
+}
+
 class PuntuacionesDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "puntuaciones.db", null, 1) {
     override fun onCreate(db: SQLiteDatabase) {
         // Crea la tabla "puntuaciones"
@@ -124,6 +170,11 @@ fun PantallaMejoresPuntuaciones(
 ) {
     val context = LocalContext.current
 
+    // Iniciar música instrumental
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
+
     // Lista reactiva para las puntuaciones
     val puntuaciones = remember { mutableStateListOf<Pair<String, Int>>() }
 
@@ -157,6 +208,7 @@ fun PantallaMejoresPuntuaciones(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = onBackClik) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
@@ -164,11 +216,16 @@ fun PantallaMejoresPuntuaciones(
 
 @Composable
 fun PantallaInicio(
+    context: Context, // Se necesita para acceder a los recursos
     onJugarClick: () -> Unit,
     onPuntuacionesClick: () -> Unit,
     onOpcionesClick: () -> Unit,
-    onCreditosClick: () -> Unit
+    onCreditosClick: () -> Unit,
 ) {
+    // Iniciar música instrumental
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -180,29 +237,39 @@ fun PantallaInicio(
             modifier = Modifier.size(200.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onJugarClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onJugarClick()
+        }) {
             Text(text = "JUGAR", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onPuntuacionesClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onPuntuacionesClick()
+        }) {
             Text(text = "PUNTUACIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onOpcionesClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onOpcionesClick()
+        }) {
             Text(text = "OPCIONES", fontSize = 18.sp)
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onCreditosClick) {
+        Button(onClick = {
+            reproducirSonido(context)
+            onCreditosClick()
+        }) {
             Text(text = "CRÉDITOS", fontSize = 18.sp)
         }
     }
 }
 
-
-
-
 @Composable
 fun PantallaDificultad(
+    context: Context,
     onAtrasClick: () -> Unit,
     onFacilClick: () -> Unit,
     onNormalClick: () -> Unit,
@@ -228,16 +295,23 @@ fun PantallaDificultad(
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onAtrasClick) {
+            reproducirSonido(context)
             Text(text = "ATRÁS")
         }
     }
 }
 
-
-
+object OpcionesUsuario {
+    var musicaActivada by mutableStateOf(true)
+    var sonidoActivado by mutableStateOf(true)
+}
 
 @Composable
-fun PantallaCreditos(onVolverClick: () -> Unit) {
+fun PantallaCreditos(
+    context: Context,
+    onVolverClick: () -> Unit
+) {
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -304,7 +378,10 @@ fun PantallaCreditos(onVolverClick: () -> Unit) {
 }
 
 @Composable
-fun PantallaOpciones (onInicioClick: ()-> Unit) {
+fun PantallaOpciones(context: Context, onInicioClick: () -> Unit) {
+    if (OpcionesUsuario.musicaActivada) {
+        Musicamastermind(context )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -315,13 +392,10 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
         Text(
             text = "Opciones",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier
-                .padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        var musicaActivada by remember { mutableStateOf(false) }
-        var sonidoActivado by remember { mutableStateOf(false) }
-
+        // Switch de música
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -329,43 +403,38 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
             Text(text = "Música")
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
-                checked = musicaActivada,
-                onCheckedChange = { musicaActivada = it }
+                checked = OpcionesUsuario.musicaActivada,
+                onCheckedChange = { OpcionesUsuario.musicaActivada = it }
             )
         }
 
+        // Switch de sonido
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Sonido")
             Spacer(modifier = Modifier.width(8.dp))
             Switch(
-                checked = sonidoActivado,
-                onCheckedChange = { sonidoActivado = it }
+                checked = OpcionesUsuario.sonidoActivado,
+                onCheckedChange = { OpcionesUsuario.sonidoActivado = it }
             )
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = onInicioClick) {
+            reproducirSonido(context)
+
             Text(text = "ATRÁS")
         }
     }
 }
 
-
 @Composable
-fun TableHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = "Posición", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Puntuación", style = MaterialTheme.typography.titleSmall)
-        Text(text = "Tiempo", style = MaterialTheme.typography.titleSmall)
-    }
-}
-@Composable
-fun PantallaFacil(onVolverClick: () -> Unit) {
+fun PantallaFacil(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context) // Iniciar música de fondo
     JuegoMemoria(
+        context = context,
         tamañoMatriz = 3,
         onVolverClick = onVolverClick,
         titulo = "Modo Fácil (3x3)"
@@ -373,8 +442,10 @@ fun PantallaFacil(onVolverClick: () -> Unit) {
 }
 
 @Composable
-fun PantallaNormal(onVolverClick: () -> Unit) {
+fun PantallaNormal(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context)
     JuegoMemoria(
+        context = context,
         tamañoMatriz = 4,
         onVolverClick = onVolverClick,
         titulo = "Modo Normal (4x4)"
@@ -382,8 +453,10 @@ fun PantallaNormal(onVolverClick: () -> Unit) {
 }
 
 @Composable
-fun PantallaDificil(onVolverClick: () -> Unit) {
+fun PantallaDificil(context: Context, onVolverClick: () -> Unit) {
+    SonidoDeFondo(context)
     JuegoMemoria(
+        context = context,
         tamañoMatriz = 5,
         onVolverClick = onVolverClick,
         titulo = "Modo Difícil (5x5)"
@@ -392,6 +465,7 @@ fun PantallaDificil(onVolverClick: () -> Unit) {
 
 @Composable
 fun JuegoMemoria(
+    context: Context,
     tamañoMatriz: Int,
     onVolverClick: () -> Unit,
     titulo: String
@@ -549,46 +623,68 @@ fun TableRow(posicion: Int, puntuacion: Int, tiempo: String) {
 @Composable
 fun Navegacion() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+
     NavHost(navController = navController, startDestination = Pantallas.Inicio.name) {
         composable(Pantallas.Inicio.name) {
             PantallaInicio(
+                context = context,
                 onJugarClick = { navController.navigate(Pantallas.Dificultad.name) },
                 onPuntuacionesClick = { navController.navigate(Pantallas.Puntuaciones.name) },
                 onOpcionesClick = { navController.navigate(Pantallas.Opciones.name) },
                 onCreditosClick = { navController.navigate(Pantallas.Creditos.name) }
             )
         }
+
         composable(Pantallas.Dificultad.name) {
             PantallaDificultad(
+                context = context,
                 onAtrasClick = { navController.popBackStack() },
                 onFacilClick = { navController.navigate(Pantallas.Facil.name) },
                 onNormalClick = { navController.navigate(Pantallas.Normal.name) },
                 onDificilClick = { navController.navigate(Pantallas.Dificil.name) }
             )
         }
+
         composable(Pantallas.Creditos.name) {
             PantallaCreditos(
+                context = context,
                 onVolverClick = { navController.popBackStack() }
             )
         }
+
         composable(Pantallas.Opciones.name) {
-            PantallaOpciones (
+            PantallaOpciones(
+                context = context,
                 onInicioClick = { navController.popBackStack() }
             )
         }
+
         composable(Pantallas.Puntuaciones.name) {
             PantallaMejoresPuntuaciones(
                 onBackClik = { navController.popBackStack() }
             )
         }
+
         composable(Pantallas.Facil.name) {
-            PantallaFacil { navController.popBackStack() }
+            PantallaFacil(
+                context = context,
+                onVolverClick = { navController.popBackStack() }
+            )
         }
+
         composable(Pantallas.Normal.name) {
-            PantallaNormal { navController.popBackStack() }
+            PantallaNormal(
+                context = context,
+                onVolverClick = { navController.popBackStack() }
+            )
         }
+
         composable(Pantallas.Dificil.name) {
-            PantallaDificil { navController.popBackStack() }
+            PantallaDificil(
+                context = context,
+                onVolverClick = { navController.popBackStack() }
+            )
         }
     }
 }
