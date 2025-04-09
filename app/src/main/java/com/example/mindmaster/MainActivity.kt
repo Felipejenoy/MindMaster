@@ -1,4 +1,8 @@
 package com.example.mindmaster
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
@@ -40,10 +44,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.mutableStateListOf
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.platform.LocalContext
+
 
 
 class MainActivity : ComponentActivity() {
@@ -61,8 +67,100 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+class PuntuacionesDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "puntuaciones.db", null, 1) {
+    override fun onCreate(db: SQLiteDatabase) {
+        // Crea la tabla "puntuaciones"
+        db.execSQL(
+            """
+            CREATE TABLE puntuaciones (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dificultad TEXT NOT NULL,
+                puntaje INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+    }
 
-//trabajando en rama Diego
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // Si se actualiza la versión de la base de datos, puedes manejar cambios aquí
+        db.execSQL("DROP TABLE IF EXISTS puntuaciones")
+        onCreate(db)
+    }
+}
+
+fun insertPuntuacion(context: Context, dificultad: String, puntaje: Int) {
+    val dbHelper = PuntuacionesDatabaseHelper(context)
+    val db = dbHelper.writableDatabase
+
+    val values = ContentValues().apply {
+        put("dificultad", dificultad)
+        put("puntaje", puntaje)
+    }
+
+    db.insert("puntuaciones", null, values)
+    db.close()
+}
+
+fun getPuntuaciones(context: Context): List<Pair<String, Int>> {
+    val dbHelper = PuntuacionesDatabaseHelper(context)
+    val db = dbHelper.readableDatabase
+
+    val cursor = db.rawQuery("SELECT dificultad, puntaje FROM puntuaciones", null)
+    val puntuaciones = mutableListOf<Pair<String, Int>>()
+
+    while (cursor.moveToNext()) {
+        val dificultad = cursor.getString(cursor.getColumnIndexOrThrow("dificultad"))
+        val puntaje = cursor.getInt(cursor.getColumnIndexOrThrow("puntaje"))
+        puntuaciones.add(dificultad to puntaje)
+    }
+
+    cursor.close()
+    db.close()
+    return puntuaciones
+}
+@Composable
+fun PantallaMejoresPuntuaciones(
+    onBackClik: () -> Unit
+) {
+    val context = LocalContext.current
+
+    // Lista reactiva para las puntuaciones
+    val puntuaciones = remember { mutableStateListOf<Pair<String, Int>>() }
+
+    // Inserta las puntuaciones iniciales y recupera datos
+    LaunchedEffect(Unit) {
+        // Recupera las puntuaciones
+        val nuevaLista = getPuntuaciones(context)
+        puntuaciones.clear() // Limpia y actualiza la lista reactiva
+        puntuaciones.addAll(nuevaLista)
+    }
+
+    // Construimos la UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Historial de partidas",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Muestra solo las últimas 10 puntuaciones en orden inverso (más recientes primero)
+        puntuaciones.takeLast(10).reversed().forEachIndexed { index, (dificultad, puntaje) ->
+            Text(text = "N°:${index + 1}    Dificultad: $dificultad    Puntaje: $puntaje")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onBackClik) {
+            Text(text = "ATRÁS")
+        }
+    }
+}
 
 @Composable
 fun PantallaInicio(
@@ -136,19 +234,71 @@ fun PantallaDificultad(
 }
 
 
+
+
 @Composable
 fun PantallaCreditos(onVolverClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        Text(text = "MindMaster", fontSize = 24.sp)
+        Text(
+            text = "MindMaster",
+            fontSize = 28.sp,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Desarrollado por:\nJohan Felipe Ordoñez \nDiego Gomez", fontSize = 18.sp)
+
+        Text(
+            text = "Desarrollado por:",
+            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Text(
+            text = "Johan Felipe Ordoñez\nDiego Gomez\nValentina Sanchez",
+            fontSize = 18.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Nueva sección de descripción del juego
+        Text(
+            text = "Descripción del Juego:",
+            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "MindMaster es un desafiante juego de memoria donde debes recordar y repetir secuencias " +
+                    "de patrones. El juego muestra una secuencia de colores que debes memorizar y luego " +
+                    "repetir correctamente. A medida que avanzas, la dificultad aumenta con secuencias " +
+                    "más largas y patrones más complejos.\n\n" +
+                    "Características:\n" +
+                    "• Tres niveles de dificultad\n" +
+                    "• Sistema de puntuación progresivo\n" +
+                    "• Registro de tus mejores puntajes\n" +
+                    "• Diseño intuitivo y atractivo",
+            fontSize = 16.sp,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onVolverClick) {
-            Text(text = "VOLVER")
+
+        Button(
+            onClick = onVolverClick,
+            modifier = Modifier.size(width = 150.dp, height = 50.dp)
+        ) {
+            Text(text = "VOLVER", fontSize = 16.sp)
         }
     }
 }
@@ -201,49 +351,6 @@ fun PantallaOpciones (onInicioClick: ()-> Unit) {
     }
 }
 
-@Composable
-fun PantallaMejoresPuntuaciones(
-    onBackClik: ()-> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Título
-        Text(
-            text = "Mejores puntuaciones",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        // Tabla de puntuaciones
-        val puntuaciones = listOf(
-            Triple(1, 2500, "02:35"),
-            Triple(2, 2400, "03:10"),
-            Triple(3, 2300, "01:45"),
-            Triple(4, 2200, "04:20"),
-            Triple(5, 2100, "02:50"),
-            Triple(6, 2000, "01:30"),
-            Triple(7, 1900, "03:40"),
-            Triple(8, 1800, "02:10"),
-            Triple(9, 1700, "01:50"),
-            Triple(10, 1600, "04:00")
-        )
-
-        TableHeader()
-
-        puntuaciones.forEach { (posicion, puntuacion, tiempo) ->
-            TableRow(posicion, puntuacion, tiempo)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onBackClik) {
-            Text(text = "ATRÁS")
-        }
-    }
-}
 
 @Composable
 fun TableHeader() {
@@ -297,13 +404,37 @@ fun JuegoMemoria(
     val tarjetasIluminadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
     val tarjetasSeleccionadas = remember { mutableStateListOf(*Array(totalTarjetas) { false }) }
     val reiniciarJuego = remember { mutableStateOf(false) }
+    val score = remember { mutableStateOf(0) }
+    val juegoGanado = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val guardarPuntuacion = remember { mutableStateOf(false) }
+    val dificultad = remember {
+        mutableStateOf(
+            when(tamañoMatriz) {
+                3 -> "Fácil"
+                4 -> "Normal"
+                5 -> "Difícil"
+                else -> "NO aplica"
+            }
+        )
+    }
 
+    // Efecto para guardar puntuación cuando cambia el estado
+    LaunchedEffect(guardarPuntuacion.value) {
+        if (guardarPuntuacion.value) {
+            insertPuntuacion(context, dificultad.value, score.value)
+            guardarPuntuacion.value = false
+        }
+    }
+
+    // Efecto para inicializar el juego
     LaunchedEffect(Unit, reiniciarJuego.value) {
         secuencia.clear()
         secuencia.addAll((0 until totalTarjetas).shuffled())
         iluminando.value = true
         tarjetasSeleccionadas.replaceAll { false }
         tarjetasIluminadas.replaceAll { false }
+        juegoGanado.value = false
 
         for (i in secuencia.indices) {
             val index = secuencia[i]
@@ -322,6 +453,7 @@ fun JuegoMemoria(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(titulo, fontSize = 20.sp)
+        Text("Puntaje: ${score.value}", fontSize = 16.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
         // MATRIZ DINÁMICA
@@ -336,7 +468,7 @@ fun JuegoMemoria(
                         Box(
                             modifier = Modifier
                                 .padding(4.dp)
-                                .size(if (tamañoMatriz > 4) 60.dp else 80.dp) // Tamaño adaptable
+                                .size(if (tamañoMatriz > 4) 60.dp else 80.dp)
                                 .background(
                                     when {
                                         iluminado -> Color.Yellow
@@ -348,10 +480,20 @@ fun JuegoMemoria(
                                     tarjetasSeleccionadas[index] = true
                                     secuenciaUsuario.add(index)
                                     val indexActual = secuenciaUsuario.size - 1
+
                                     if (secuenciaUsuario[indexActual] != secuencia[indexActual]) {
-                                        mostrarResultado.value = "Fallaste, intenta de nuevo."
+                                        mostrarResultado.value = "¡Fallaste! Puntaje final: ${score.value}"
+                                        juegoGanado.value = false
+                                        guardarPuntuacion.value = true
                                     } else if (secuenciaUsuario.size == secuencia.size) {
-                                        mostrarResultado.value = "¡Correcto!"
+                                        when(tamañoMatriz) {
+                                            3 -> score.value += 100
+                                            4 -> score.value += 200
+                                            5 -> score.value += 300
+                                        }
+                                        mostrarResultado.value = "¡Correcto! Puntaje: ${score.value}"
+                                        juegoGanado.value = true
+                                        guardarPuntuacion.value = true
                                     }
                                 }
                         )
@@ -364,12 +506,24 @@ fun JuegoMemoria(
             Spacer(modifier = Modifier.height(24.dp))
             Text(resultado, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                mostrarResultado.value = null
-                secuenciaUsuario.clear()
-                reiniciarJuego.value = !reiniciarJuego.value
-            }) {
-                Text("Intentar de nuevo")
+
+            if (juegoGanado.value) {
+                Button(onClick = {
+                    mostrarResultado.value = null
+                    secuenciaUsuario.clear()
+                    reiniciarJuego.value = !reiniciarJuego.value
+                }) {
+                    Text("Siguiente")
+                }
+            } else {
+                Button(onClick = {
+                    mostrarResultado.value = null
+                    secuenciaUsuario.clear()
+                    reiniciarJuego.value = !reiniciarJuego.value
+                    score.value = 0
+                }) {
+                    Text("Intentar de nuevo")
+                }
             }
         }
 

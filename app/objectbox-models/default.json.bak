@@ -1,0 +1,71 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:7574314468212345175",
+      "lastPropertyId": "4:7639616230738353384",
+      "name": "Puntaje",
+      "properties": [
+        {
+          "id": "1:7353258537958111821",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2487441455580046609",
+          "name": "nombreJugador",
+          "type": 9
+        },
+        {
+          "id": "3:856832490768450836",
+          "name": "puntaje",
+          "type": 5
+        },
+        {
+          "id": "4:7639616230738353384",
+          "name": "fecha",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:4179281227375365482",
+      "lastPropertyId": "3:4039201110869084595",
+      "name": "Score",
+      "properties": [
+        {
+          "id": "1:6576826579125105379",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:691810406175355550",
+          "name": "playerName",
+          "type": 9
+        },
+        {
+          "id": "3:4039201110869084595",
+          "name": "score",
+          "type": 5
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:4179281227375365482",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}
